@@ -15,7 +15,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
 
       - name: Install npm packages
         run: npm install
@@ -35,7 +34,15 @@ jobs:
             cp native-shim.js www/
           fi
 
-          find . -maxdepth 1 -type f -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" -o -name "*.ttf" -o -name "*.woff" -o -name "*.woff2" -exec cp {} www/ \;
+          find . -maxdepth 1 -type f \( \
+            -name "*.png" -o \
+            -name "*.jpg" -o \
+            -name "*.jpeg" -o \
+            -name "*.webp" -o \
+            -name "*.ttf" -o \
+            -name "*.woff" -o \
+            -name "*.woff2" \
+          \) -exec cp {} www/ \;
 
           echo "Contents of www:"
           find www -maxdepth 1 -type f -print
@@ -54,4 +61,30 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-         
+          cache: gradle
+
+      - name: Make Gradle executable
+        working-directory: android
+        run: chmod +x gradlew
+
+      - name: Verify application ID
+        working-directory: android
+        run: |
+          echo "Checking Android application ID..."
+          grep -R "com.protocolsakha.app" app/build.gradle* || true
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew clean assembleDebug --no-daemon
+
+      - name: List APK
+        run: |
+          echo "Generated APK files:"
+          find android/app/build/outputs/apk -type f -name "*.apk" -print
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PROTOCOL-SAKHA-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
