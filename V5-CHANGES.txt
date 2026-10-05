@@ -1,0 +1,14 @@
+PROTOCOL SAKHA V5 – requested changes
+- Existing design, logo, colours and layout retained.
+- Existing sync engine retained and connected to common Login ID/password flow.
+- Login ID/password can be used on another Android/mobile/PC.
+- New Login ID registration and password reset by email.
+- Login can be turned off/on from security settings.
+- Route can pass through multiple police-station jurisdictions.
+- Each point can be assigned to the exact police-station jurisdiction.
+- Duty allocation prefers/uses staff belonging to that point's jurisdiction.
+- Route/point add, edit and delete retained; delete takes a safety snapshot first.
+- Gujarati font bundled (Noto Sans Gujarati regular/bold) and input NFC normalization added.
+- Existing backup/snapshot/sync/error-handling features retained.
+
+- Duty WhatsApp message (time + point per person) added (event list -> WhatsApp button).
