@@ -1,0 +1,54 @@
+name: Build PROTOCOL SAKHA APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm packages
+        run: npm install
+
+      - name: Install Capacitor CLI
+        run: npm install @capacitor/cli @capacitor/core @capacitor/android
+
+      - name: Prepare web folder
+        run: |
+          mkdir -p www
+          cp index-1.html www/index.html
+          cp -r *.js www/ 2>/dev/null || true
+          cp -r *.png www/ 2>/dev/null || true
+          cp -r *.ttf www/ 2>/dev/null || true
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+         
