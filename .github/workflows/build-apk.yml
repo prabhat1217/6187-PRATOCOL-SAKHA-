@@ -15,22 +15,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: npm
 
       - name: Install npm packages
         run: npm install
 
       - name: Install Capacitor
         run: |
-          npm install @capacitor/core@6 @capacitor/cli@6
-          npm install @capacitor/android@6
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 
       - name: Prepare web folder
         run: |
+          rm -rf www
           mkdir -p www
+
           cp index-1.html www/index.html
-          cp native-shim.js www/ 2>/dev/null || true
-          cp *.png www/ 2>/dev/null || true
-          cp *.ttf www/ 2>/dev/null || true
+
+          if [ -f native-shim.js ]; then
+            cp native-shim.js www/
+          fi
+
+          find . -maxdepth 1 -type f -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" -o -name "*.ttf" -o -name "*.woff" -o -name "*.woff2" -exec cp {} www/ \;
+
+          echo "Contents of www:"
+          find www -maxdepth 1 -type f -print
+
+      - name: Remove old Android project
+        run: rm -rf android
 
       - name: Add Android
         run: npx cap add android
@@ -38,23 +49,9 @@ jobs:
       - name: Sync Android
         run: npx cap sync android
 
-      - name: Check Android project
-        run: |
-          ls -la android
-          find android -maxdepth 2 -name "gradlew" -o -name "gradlew.bat"
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Build APK
-        working-directory: android
-        run: ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PROTOCOL-SAKHA-APK
-          path: android/app/build/outputs/apk/debug/*.apk
+         
