@@ -5,6 +5,9 @@
   "description": "PROTOCOL SAKHA",
   "main": "main.js",
   "author": "Protocol Shakha",
+  "scripts": {
+    "dist": "electron-builder --win"
+  },
   "devDependencies": {
     "electron": "^31.7.7",
     "electron-builder": "^24.13.3"
