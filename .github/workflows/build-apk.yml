@@ -19,22 +19,29 @@ jobs:
       - name: Install npm packages
         run: npm install
 
-      - name: Install Capacitor CLI
-        run: npm install @capacitor/cli @capacitor/core @capacitor/android
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core@6 @capacitor/cli@6
+          npm install @capacitor/android@6
 
       - name: Prepare web folder
         run: |
           mkdir -p www
           cp index-1.html www/index.html
-          cp -r *.js www/ 2>/dev/null || true
-          cp -r *.png www/ 2>/dev/null || true
-          cp -r *.ttf www/ 2>/dev/null || true
+          cp native-shim.js www/ 2>/dev/null || true
+          cp *.png www/ 2>/dev/null || true
+          cp *.ttf www/ 2>/dev/null || true
 
-      - name: Add Android platform
+      - name: Add Android
         run: npx cap add android
 
-      - name: Sync Capacitor
+      - name: Sync Android
         run: npx cap sync android
+
+      - name: Check Android project
+        run: |
+          ls -la android
+          find android -maxdepth 2 -name "gradlew" -o -name "gradlew.bat"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -44,11 +51,10 @@ jobs:
 
       - name: Build APK
         working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-         
+          name: PROTOCOL-SAKHA-APK
+          path: android/app/build/outputs/apk/debug/*.apk
