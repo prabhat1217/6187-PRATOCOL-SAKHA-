@@ -27,7 +27,6 @@ jobs:
         run: |
           rm -rf www
           mkdir -p www
-
           cp index-1.html www/index.html
 
           if [ -f native-shim.js ]; then
@@ -44,13 +43,7 @@ jobs:
             -name "*.woff2" \
           \) -exec cp {} www/ \;
 
-          echo "Contents of www:"
-          find www -maxdepth 1 -type f -print
-
-      - name: Remove old Android project
-        run: rm -rf android
-
-      - name: Add Android
+      - name: Create Android project
         run: npx cap add android
 
       - name: Sync Android
@@ -63,24 +56,48 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Configure Android application
+        working-directory: android
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("app/build.gradle")
+          s = p.read_text()
+
+          s = s.replace(
+              'namespace "com.protocolsakha.app"',
+              'namespace "com.protocolsakha.app"'
+          )
+
+          if 'applicationId "com.protocolsakha.app"' not in s:
+              s = s.replace(
+                  'defaultConfig {',
+                  'defaultConfig {\n        applicationId "com.protocolsakha.app"'
+              )
+
+          p.write_text(s)
+          PY
+
+          echo "===== app/build.gradle ====="
+          cat app/build.gradle
+
       - name: Make Gradle executable
         working-directory: android
         run: chmod +x gradlew
 
-      - name: Verify application ID
+      - name: Clean Android build
         working-directory: android
-        run: |
-          echo "Checking Android application ID..."
-          grep -R "com.protocolsakha.app" app/build.gradle* || true
+        run: ./gradlew clean --no-daemon
 
-      - name: Build Debug APK
+      - name: Build APK
         working-directory: android
-        run: ./gradlew clean assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
 
-      - name: List APK
+      - name: Show generated APK
         run: |
-          echo "Generated APK files:"
-          find android/app/build/outputs/apk -type f -name "*.apk" -print
+          echo "===== APK FILE ====="
+          find android/app/build/outputs/apk/debug -type f -name "*.apk" -exec ls -lh {} \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
